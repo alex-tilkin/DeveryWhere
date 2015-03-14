@@ -94,45 +94,44 @@ public class TranscriptionThread extends Thread {
 		
 		try {
 			Gson gson = new Gson();
-			response = response.substring("{\"result\":[]}".length() + 1);
-			Response[] transcription = gson.fromJson(response, Response[].class);
+			Response transcription = gson.fromJson(response, Response.class);
 			if (transcription != null) {
-//				if (transcription.status == 0) {
-//					// returns the transcription
-//					this.confidence = transcription.hypotheses[0].confidence;
-//					this.status = transcription.status;
-//					this.utterance = transcription.hypotheses[0].utterance;
-//					this.available = true;
-//				} else {
-//					// no result, could not be transcribed
-//					this.confidence = 0;
-//					this.status = transcription.status;
-//					this.utterance = "";
-//					this.available = true;
-//				}
-//				if (debug) {					
-//					switch (this.status) {
-//					case 0:
-//						s = "Recognized: " + this.utterance + " (confidence: " + this.confidence + ")";
-//						status = STT.SUCCESS;
-//						break;
-//					case 3:
-//						s = "We lost some words on the way.";
-//						status = STT.ERROR;
-//						break;
-//					case 5:
-//						s = "Speech could not be interpreted.";
-//						status = STT.ERROR;
-//						break;
-//					default:
-//						s = "Did you say something?";
-//						status = STT.ERROR;
-//						break;
-//					}
-//				} else {
-//					if (this.status == 0) status = STT.SUCCESS;
-//					else status = STT.ERROR;
-//				}
+				if (transcription.status == 0) {
+					// returns the transcription
+					this.confidence = transcription.hypotheses[0].confidence;
+					this.status = transcription.status;
+					this.utterance = transcription.hypotheses[0].utterance;
+					this.available = true;
+				} else {
+					// no result, could not be transcribed
+					this.confidence = 0;
+					this.status = transcription.status;
+					this.utterance = "";
+					this.available = true;
+				}
+				if (debug) {					
+					switch (this.status) {
+					case 0:
+						s = "Recognized: " + this.utterance + " (confidence: " + this.confidence + ")";
+						status = STT.SUCCESS;
+						break;
+					case 3:
+						s = "We lost some words on the way.";
+						status = STT.ERROR;
+						break;
+					case 5:
+						s = "Speech could not be interpreted.";
+						status = STT.ERROR;
+						break;
+					default:
+						s = "Did you say something?";
+						status = STT.ERROR;
+						break;
+					}
+				} else {
+					if (this.status == 0) status = STT.SUCCESS;
+					else status = STT.ERROR;
+				}
 			} else {
 				s = "Speech could not be interpreted! Try to shorten the recording.";
 				status = STT.ERROR;
