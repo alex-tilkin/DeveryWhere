@@ -17,12 +17,12 @@ public class LibTest extends PApplet {
 	{
 		// Init STT automatically starts listening. Check getVolume() and use setThreshold() to fit your enviroment.
 		minim = new Minim(this);
-		stt = new STT(this, true, minim);
+		stt = new STT(this/*, false, minim*/);
 		
-		stt.setLanguage("en");
+		stt.setLanguage("en-us");
 		stt.enableDebug();
-		// stt.transcribeFile("bla.wav");
-		// stt.enableAutoRecord();
+		//stt.transcribeFile("bla.wav");
+		//stt.enableAutoRecord();
 	}
 	
 	public void draw() 
