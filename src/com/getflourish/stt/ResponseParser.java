@@ -25,10 +25,10 @@ public class ResponseParser {
 	}
 	
 	public void parse() {
-		String[] jsons = jsonString.split("\n");
-        for(String j : jsons){
-        	SpeechResponse speechResponse = gson.fromJson(j, SpeechResponse.class);
-            if (speechResponse == null || speechResponse.result == null || speechResponse.result.length <= 0) { 
+		String[] jsonStrings = jsonString.split("\n");
+        for(String token : jsonStrings){
+        	SpeechResponse speechResponse = gson.fromJson(token, SpeechResponse.class);
+            if (speechResponse == null || speechResponse.getSpeechResults() == null || speechResponse.getSpeechResults().length <= 0) { 
             	continue;
             }
             getSpeechResponses().add(speechResponse);

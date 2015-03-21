@@ -2,18 +2,49 @@ package com.getflourish.stt;
 
 public class SpeechResponse
 {
-    public SpeechResult[] result;
-    public int result_index;
+    private SpeechResult[] result;
+    private int result_index = -1;
     
+	public SpeechResult[] getSpeechResults() {
+		return result;
+	}
+	
+	public SpeechResult getSpeechResultAtIndex(final int index) {
+		if(index < 0 || index >= result.length) {
+			return null;
+		}
+		return result[index];
+	}
+	
+	public int getResultIndex() {
+		return result_index;
+	}
+	
     public class SpeechResult
     {
-        public SpeechAlternative[] alternative;
-        public Boolean Final;
+    	private SpeechAlternative[] alternative;
+    	private Boolean Final;
         
+		public SpeechAlternative[] getAlternative() {
+			return alternative;
+		}
+
+		public Boolean getFinal() {
+			return Final;
+		}
+		
         public class SpeechAlternative
         {
-            public String transcript;
-            public double confidence;
+        	private String transcript;
+        	private float confidence;
+        	
+			public String getTranscript() {
+				return transcript;
+			}
+			
+			public float getConfidence() {
+				return confidence;
+			}
         }
     }
 }

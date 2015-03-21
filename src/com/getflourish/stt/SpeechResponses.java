@@ -10,9 +10,9 @@ public class SpeechResponses extends ArrayList<SpeechResponse> {
 		SpeechAlternative bestResponse = null;
 		
 		for(SpeechResponse speechResponse : this) {
-			for(SpeechResult speechResult : speechResponse.result) {
-				for(SpeechAlternative speechAlternative : speechResult.alternative) {
-					if(bestResponse == null || speechAlternative.confidence > bestResponse.confidence) {
+			for(SpeechResult speechResult : speechResponse.getSpeechResults()) {
+				for(SpeechAlternative speechAlternative : speechResult.getAlternative()) {
+					if(bestResponse == null || speechAlternative.getConfidence() > bestResponse.getConfidence()) {
 						bestResponse = speechAlternative;
 					}
 				}

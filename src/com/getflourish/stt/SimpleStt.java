@@ -1,8 +1,6 @@
 package com.getflourish.stt;
-import java.util.ArrayList;
 
 import org.json.JSONException;
-
 import com.getflourish.stt.SpeechResponse.SpeechResult.SpeechAlternative;
 
 public class SimpleStt {
@@ -13,8 +11,9 @@ public class SimpleStt {
 		ResponseParser responseParser = new ResponseParser();
 		responseParser.setJsonString(jsonString);
 		responseParser.parse();
-		responseParser.reset();
 		SpeechResponses speechResponses = responseParser.getSpeechResponses();
 		SpeechAlternative speechAlternative = speechResponses.getBestResponse();
+		
+		responseParser.reset();
 	}
 }
