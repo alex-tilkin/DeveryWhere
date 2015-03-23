@@ -1,4 +1,4 @@
-package com.getflourish.stt;
+package speechToText;
 import com.google.gson.Gson;
 
 public class ResponseParser {

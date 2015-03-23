@@ -1,4 +1,4 @@
-package com.getflourish.stt;
+package speechToText;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -7,14 +7,14 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Properties;
+
+import speechToText.STT;
+import speechToText.Timer;
+import speechToText.TranscriptionThread;
 
 import processing.core.PApplet;
-
 import ddf.minim.*;
-
 import javaFlacEncoder.*;
-
 
 /**
  * Converts speech to text using the x-webkit-speech technology found in Chrome.
@@ -23,10 +23,11 @@ import javaFlacEncoder.*;
  */
 public class STT  {
 	
-	public final static int ERROR = 2;
 	public final static int RECORDING = 0;
 	public final static int SUCCESS = 1;
+	public final static int ERROR = 2;
 	public final static int TRANSCRIBING = 3;
+	
 	private boolean active = false;
 	boolean analyzing;
 	private boolean auto = false;
@@ -49,7 +50,7 @@ public class STT  {
 	String lastStatus = "";
 	boolean log = false;
 	private Minim minim;
-	PApplet p;
+	PApplet pApplet;
 	
 	String path = "";
 	
@@ -74,38 +75,23 @@ public class STT  {
 	float volume;
 	ArrayList<Float> volumes;
 	
-	/**
-	 * @param _p instance of PApplet
-	 */
-	public STT (PApplet _p) {
-		this(_p, false);
-	}
-	/**
-	 * @param _p instance of PApplet
-	 * @param history indicates whether or not recordings are stored in the data folder	
-	 */
-	public STT (PApplet _p, boolean history) {
-		this(_p, history, null);
-	}
-	public STT (PApplet _p, boolean history, Minim _minim) {
-		this.p = _p;
-		this.log = history;  
-		this.threads = new ArrayList<TranscriptionThread>();
-		if (minim == null) {
-			this.minim = new Minim(p);	
-		} else {
-			this.minim = _minim;
-		}
-		this.encoder = new FLAC_FileEncoder();		
+	public STT (PApplet _pApplet, boolean history) {
+		pApplet = _pApplet;
+		log = history;  
+		threads = new ArrayList<TranscriptionThread>();
+		minim = new Minim(pApplet);
+		encoder = new FLAC_FileEncoder();		
 		// get a LineIn from Minim, default bit depth is 16
 		in = minim.getLineIn(Minim.MONO);
-		this.recorder = minim.createRecorder(in, path + fileName + fileCount + ".wav", true);
-        disableAutoRecord(); 
-		this.listen();	
+		recorder = minim.createRecorder(in, path + fileName + fileCount + ".wav", true);
+        disableAutoRecord();		
+        listen();	
 	}
+
 	public AudioInput getLineIn() {
 		return in;
 	}
+	
 	TranscriptionThread addTranscriptionThread() {
 	    transcriptionThread = new TranscriptionThread(language);
 		transcriptionThread.debug = debug;
@@ -113,10 +99,12 @@ public class STT  {
         threads.add(transcriptionThread);
 		return transcriptionThread;
 	}
+	
 	private void killTranscriptionThread (int i) {
 		threads.get(i).interrupt();
 		threads.remove(i);
 	}
+	
 	private void analyzeEnv() {
 		if (!analyzing) {
 			timer2 = new Timer(2000);
@@ -128,12 +116,15 @@ public class STT  {
     		if (!timer2.isFinished()) {
     			float volume = in.mix.level() * 1000;
     			volumes.add(volume);
-    		} else {
+    		} 
+    		else {
     			float avg = 0.0f;
     			float max = 0.0f;
     			for (int i = 0; i < volumes.size(); i++) {
     				avg += volumes.get(i);
-    				if (volumes.get(i) > max) max = volumes.get(i);
+    				if (volumes.get(i) > max) {
+    					max = volumes.get(i);
+    				}
     			}
     			avg /= volumes.size();
     			threshold = (float) Math.ceil(max);
@@ -142,6 +133,7 @@ public class STT  {
     		}	
     	}	
 	}
+	
 	/**
 	 * Starts a record
 	 */
@@ -152,31 +144,36 @@ public class STT  {
 			auto = false;
 		}
 	}
+	
 	public void disableAutoRecord () {
 		auto = false;
 		disableAutoThreshold();
 		status = "STT info: Manual mode enabled. Use begin() / end() to manage recording.";
 	}
-	/**
+	
+	/*
 	 * Disables the analysis of the environmental volume after initialization.
 	 */
 	public void disableAutoThreshold() {
 		this.autoThreshold = false;
 		analyzing = false;
 	}
+	
 	public void disableDebug() {
 		this.debug = false;
 	}
+	
 	/**
 	 * Records will be deleted
 	 */
 	public void disableHistory() {
 		this.log = false;
 	}
+	
 	private void dispatchTranscriptionEvent(String utterance, float confidence, int s) {
 	    if (transcriptionEvent2 != null && !status.equals(lastStatus)) {
 			try {
-				transcriptionEvent2.invoke(p, new Object[] {utterance, confidence, s});
+				transcriptionEvent2.invoke(pApplet, new Object[] {utterance, confidence, s});
 			} catch (IllegalArgumentException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -188,8 +185,10 @@ public class STT  {
 			}
 		}
 	}
+	
 	public void dispose() {
 	}
+	
 	public void draw() {	
 		if (auto) handleAuto();
 		// handles active threads and callbacks
@@ -199,23 +198,22 @@ public class STT  {
 			if (transcriptionThread.isAvailable()) {
 				if (transcriptionEvent != null) {
 					try {
-						transcriptionEvent.invoke(p, new Object[] { transcriptionThread.getUtterance(), transcriptionThread.getConfidence()});
-					} catch (IllegalArgumentException e) {
-						// TODO Auto-generated catch block
+						transcriptionEvent.invoke(pApplet, new Object[] { transcriptionThread.getUtterance(), transcriptionThread.getConfidence()});
+					} 
+					catch (IllegalArgumentException e) {
 						e.printStackTrace();
-					} catch (IllegalAccessException e) {
-						// TODO Auto-generated catch block
+					} 
+					catch (IllegalAccessException e) {
 						e.printStackTrace();
-					} catch (InvocationTargetException e) {
+					} 
+					catch (InvocationTargetException e) {
 
 					}
 				} else if (transcriptionEvent2 != null) {
                     dispatchTranscriptionEvent(transcriptionThread.getUtterance(), transcriptionThread.getConfidence(), transcriptionThread.getStatus());
 				}
 				killTranscriptionThread(i);
-				
 			}
-
 			if (debug && !status.equals(lastStatus)) {
 				System.out.println(getTime() + " " + status);
 				lastStatus = status;
@@ -231,6 +229,7 @@ public class STT  {
 		enableAutoThreshold();
 		status = "STT info: Automatic mode enabled. Anything louder than threshold will be recorded.";
 	}
+	
 	/**
 	 * Enables the automatic recording if the given voulme threshold has been reached
 	 * @param threshold the threshold that can be checked with getVolume() 
@@ -244,11 +243,13 @@ public class STT  {
 	/**
 	 * Enables the analysis of the environmental volume after initialization.
 	 */
+	
 	public void enableAutoThreshold() {
 		this.autoThreshold = true;
 		analyzing = false;
 		analyzeEnv();
 	}
+	
 	/**
 	 * Enables logging of events like recording, transcribing, success, error.
 	 */
@@ -258,12 +259,14 @@ public class STT  {
 			threads.get(i).debug = this.debug;
 		}
 	}
+	
 	/**
 	 * Records will be kept in the data folder
 	 */
 	public void enableHistory() {
 		this.log = true;
 	}
+	
 	/**
 	 * Ends a record
 	 */
@@ -274,32 +277,39 @@ public class STT  {
 			auto = false;
 		}
 	}
+	
 	private String getDateTime() {
 	        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
 	        Date date = new Date();
 	        return dateFormat.format(date);
 	}
+	
 	public String getLanguage() {
 		return language;
 	}
+	
 	/**
 	 * Returns the Minim instance for access in programs that need to use Minim beside STT
 	 */
 	public Minim getMinimInstance() {
 		return minim;
 	}
+	
 	public float getThreshold() {
 		return threshold;
 	}
+	
 	private String getTime() {
         DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         Date date = new Date();
         return dateFormat.format(date);
 	}
+	
 	public float getVolume() {
         updateVolume();
 		return volume;
 	}
+	
 	private void handleAuto () {
 	    if (analyzing) analyzeEnv();
 	    updateVolume();	
@@ -315,9 +325,10 @@ public class STT  {
     		}
 		}
 	}
+	
 	private void initFileSystem ()
 	{
-		dataPath = p.dataPath("") + "/";
+		dataPath = pApplet.dataPath("") + "/";
 		recordsPath = getDateTime() + "/";
 		if (log) {
 			path = dataPath + recordsPath;
@@ -341,8 +352,8 @@ public class STT  {
 		timer = new Timer(interval);
 		
 		// calls draw every frame
-		this.p.registerDraw(this);
-		this.p.registerDispose(this);
+		this.pApplet.registerDraw(this);
+		this.pApplet.registerDispose(this);
 	}
 	
 	private void listen() {
@@ -355,30 +366,37 @@ public class STT  {
 		
 		// setting up reflection method that is called in PApplet
 		try {
-			transcriptionEvent = p.getClass().getMethod("transcribe", 
-					String.class, float.class);
-		} catch (SecurityException e) {
-		} catch (NoSuchMethodException e) {
-		} catch (IllegalArgumentException e) {
+			transcriptionEvent = pApplet.getClass().getMethod("transcribe", String.class, float.class);
+		} 
+		catch (SecurityException e) {
+		} 
+		catch (NoSuchMethodException e) {
+		} 
+		catch (IllegalArgumentException e) {
 		}
 		
 		// setting up reflection method that is called in PApplet
 		try {
-			transcriptionEvent2 = p.getClass().getMethod("transcribe", 
-					String.class, float.class, int.class);
-		} catch (SecurityException e) {
-		} catch (NoSuchMethodException e) {
-		} catch (IllegalArgumentException e) {
+			transcriptionEvent2 = pApplet.getClass().getMethod("transcribe", String.class, float.class, int.class);
+		} 
+		catch (SecurityException e) {
+		} 
+		catch (NoSuchMethodException e) {
+		} 
+		catch (IllegalArgumentException e) {
 		}
-		
-		if (transcriptionEvent == null && transcriptionEvent2 == null) System.err.println("STT info: use transcribe(String word, float confidence, [int status]) in your main sketch to receive transcription events");
+		if (transcriptionEvent == null && transcriptionEvent2 == null) {
+			System.err.println("STT info: use transcribe(String word, float confidence, [int status]) in your main sketch to receive transcription events");
+		}
 	
 	}
+	
 	private void onBegin () 
 	{
 		status = "Recording";
         startListening();
 	}
+	
 	private void onSpeech()
 	{
 		// resets the timer each time something is heard
@@ -387,6 +405,7 @@ public class STT  {
 		recording = true;
         dispatchTranscriptionEvent(transcriptionThread.getUtterance(), transcriptionThread.getConfidence(), STT.RECORDING);
 	}
+	
 	public void onSpeechFinish()
 	{
 		status = "Transcribing";
@@ -429,6 +448,7 @@ public class STT  {
 	public void setThreshold(float threshold) {
 		this.threshold = threshold;
 	}
+	
 	private void startListening () 
 	{
 		recorder.endRecord();
@@ -438,15 +458,18 @@ public class STT  {
 		recorder.beginRecord();
 		timer.start();
 	}
+	
 	private void stop() {
 		// always close Minim audio classes when you are done with them
 		in.close();
 		minim.stop();
-		p.stop();
+		//p.stop();
 	}
+	
 	public void transcribe(String _path) {
         addTranscriptionThread().startTranscription(_path);
 	}
+	
 	public void transcribeFile (String _path) {
 		status = "Transcribing";
 		
@@ -457,7 +480,7 @@ public class STT  {
 		boolean exists = (new File(flac)).exists();
 		while(exists == false)
 		{	
-			exists = (new File(flac)).exists();		
+			exists = (new File(flac)).exists();
 		}
 	
 		if (exists) {
@@ -468,8 +491,8 @@ public class STT  {
 		
 		// new file for new speech
 		if (log) fileCount++;
-		
 	}
+	
 	private void updateVolume() {
 	    volume = in.mix.level() * 1000;
 	}

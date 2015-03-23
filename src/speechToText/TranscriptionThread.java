@@ -1,4 +1,4 @@
-package com.getflourish.stt;
+package speechToText;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,7 +12,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import com.getflourish.stt.SpeechResponse.SpeechResult.SpeechAlternative;
+import speechToText.SpeechResponse.SpeechResult.SpeechAlternative;
+
+import com.getflourish.stt.ClientHttpRequest;
+import com.getflourish.stt.STT;
 import com.google.gson.JsonSyntaxException;
 
 /**
@@ -28,7 +31,6 @@ public class TranscriptionThread extends Thread {
 	private int status;
 	boolean available = false;
 	private String utterance;
-
 	private String record;
 	private String lang;
 
@@ -75,7 +77,8 @@ public class TranscriptionThread extends Thread {
 		SpeechAlternative speechAlternative = null;
 		
 		try {
-			response = performClientHttpRequestPost(path);
+			//response = performClientHttpRequestPost(path);
+			response = "{\"result\":[]}\n{\"result\":[{\"alternative\":[{\"transcript\":\"123\",\"confidence\":0.78849554},{\"transcript\":\"one2free\"},{\"transcript\":\"12 free\"},{\"transcript\":\"1 2 3\"},{\"transcript\":\"one two three\"}],\"final\":true}],\"result_index\":0}";
 			responseParser = new ResponseParser();
 			responseParser.setJsonString(response);
 			responseParser.parse();
@@ -122,59 +125,6 @@ public class TranscriptionThread extends Thread {
 		
 		return this.utterance;
 	}
-//			Gson gson = new Gson();
-//			Response transcription = gson.fromJson(response, Response.class);
-//			if (transcription != null) {
-//				if (transcription.status == 0) {
-//					// returns the transcription
-//					this.confidence = transcription.hypotheses[0].confidence;
-//					this.status = transcription.status;
-//					this.utterance = transcription.hypotheses[0].utterance;
-//					this.available = true;
-//				} else {
-//					// no result, could not be transcribed
-//					this.confidence = 0;
-//					this.status = transcription.status;
-//					this.utterance = "";
-//					this.available = true;
-//				}
-//				if (debug) {					
-//					switch (this.status) {
-//					case 0:
-//						s = "Recognized: " + this.utterance + " (confidence: " + this.confidence + ")";
-//						status = STT.SUCCESS;
-//						break;
-//					case 3:
-//						s = "We lost some words on the way.";
-//						status = STT.ERROR;
-//						break;
-//					case 5:
-//						s = "Speech could not be interpreted.";
-//						status = STT.ERROR;
-//						break;
-//					default:
-//						s = "Did you say something?";
-//						status = STT.ERROR;
-//						break;
-//					}
-//				} else {
-//					if (this.status == 0) status = STT.SUCCESS;
-//					else status = STT.ERROR;
-//				}
-//			} else {
-//				s = "Speech could not be interpreted! Try to shorten the recording.";
-//				status = STT.ERROR;
-//			}
-//			if(debug) {
-//				System.out.println(getTime() + " " + s);
-//			}
-//		} catch (JsonSyntaxException e) {
-//			s = "PARSE ERROR: Speech could not be interpreted.";
-//			System.out.println(getTime() + " " + s);
-//			status = STT.ERROR;
-//		}
-//		return this.utterance;
-//	}
 
 	private String performClientHttpRequestPost(String path) {
 		ClientHttpRequest clientHttpRequest = null;

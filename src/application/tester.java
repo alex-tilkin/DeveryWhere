@@ -1,13 +1,15 @@
-package com.getflourish.stt;
+package application;
 
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 
-public class SimpleSttGraphical {
+import speechToText.SttController;
+
+public class tester {
 
 	private JFrame frame;
-
+	private SttController sttController;
 	/**
 	 * Launch the application.
 	 */
@@ -15,7 +17,7 @@ public class SimpleSttGraphical {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					SimpleSttGraphical window = new SimpleSttGraphical();
+					tester window = new tester();
 					window.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -23,12 +25,13 @@ public class SimpleSttGraphical {
 			}
 		});
 	}
-	
+
 	/**
 	 * Create the application.
 	 */
-	public SimpleSttGraphical() {
+	public tester() {
 		initialize();
+		sttController = new SttController();
 	}
 
 	/**
@@ -38,8 +41,6 @@ public class SimpleSttGraphical {
 		frame = new JFrame();
 		frame.setBounds(100, 100, 450, 300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		//frame.key
 	}
-	
-	
+
 }

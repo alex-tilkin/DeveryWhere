@@ -1,4 +1,4 @@
-package com.getflourish.stt;
+package speechToText;
 
 public class SpeechResponse
 {

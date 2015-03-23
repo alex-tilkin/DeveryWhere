@@ -1,8 +1,9 @@
-package com.getflourish.stt;
+package speechToText;
 
 import java.util.ArrayList;
-import com.getflourish.stt.SpeechResponse.SpeechResult;
-import com.getflourish.stt.SpeechResponse.SpeechResult.SpeechAlternative;
+
+import speechToText.SpeechResponse.SpeechResult;
+import speechToText.SpeechResponse.SpeechResult.SpeechAlternative;
 
 public class SpeechResponses extends ArrayList<SpeechResponse> {
 	

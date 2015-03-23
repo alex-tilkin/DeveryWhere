@@ -1,4 +1,4 @@
-package com.getflourish.stt;
+package speechToText;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,6 +10,8 @@ import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import speechToText.ClientHttpRequest;
 
 /**
  * Client HTTP Request class

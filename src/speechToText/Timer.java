@@ -1,4 +1,4 @@
-package com.getflourish.stt;
+package speechToText;
 
 /**
  * Example 10-5: Object-oriented timer
