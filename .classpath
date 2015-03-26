@@ -2,12 +2,27 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/minim"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/processing"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/FlacEncoder"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/org.json"/>
 	<classpathentry kind="lib" path="Externals/google-gson-2.2.4/gson-2.2.4-javadoc.jar"/>
 	<classpathentry kind="lib" path="Externals/google-gson-2.2.4/gson-2.2.4-sources.jar"/>
 	<classpathentry kind="lib" path="Externals/google-gson-2.2.4/gson-2.2.4.jar"/>
+	<classpathentry kind="lib" path="Externals/Minim-2.2.0 2/library/jl1.0.jar"/>
+	<classpathentry kind="lib" path="Externals/Minim-2.2.0 2/library/jsminim.jar"/>
+	<classpathentry kind="lib" path="Externals/Minim-2.2.0 2/library/minim.jar"/>
+	<classpathentry kind="lib" path="Externals/Minim-2.2.0 2/library/mp3spi1.9.4.jar"/>
+	<classpathentry kind="lib" path="Externals/Minim-2.2.0 2/library/tritonus_aos.jar"/>
+	<classpathentry kind="lib" path="Externals/Minim-2.2.0 2/library/tritonus_share.jar"/>
+	<classpathentry kind="lib" path="Externals/javaFlacEncoder-0.3.1-all/javaFlacEncoder-0.3.1.jar"/>
+	<classpathentry kind="lib" path="Externals/Processing/ant-launcher.jar"/>
+	<classpathentry kind="lib" path="Externals/Processing/ant.jar"/>
+	<classpathentry kind="lib" path="Externals/Processing/antlr.jar"/>
+	<classpathentry kind="lib" path="Externals/Processing/com.ibm.icu_4.4.2.v20110823.jar"/>
+	<classpathentry kind="lib" path="Externals/Processing/core.jar"/>
+	<classpathentry kind="lib" path="Externals/Processing/jdi.jar"/>
+	<classpathentry kind="lib" path="Externals/Processing/jdimodel.jar"/>
+	<classpathentry kind="lib" path="Externals/Processing/jna.jar"/>
+	<classpathentry kind="lib" path="Externals/Processing/org-netbeans-swing-outline.jar"/>
+	<classpathentry kind="lib" path="Externals/Processing/org.eclipse.osgi_3.8.1.v20120830-144521.jar"/>
+	<classpathentry kind="lib" path="Externals/Processing/pde.jar"/>
+	<classpathentry kind="lib" path="Externals/Processing/stt.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

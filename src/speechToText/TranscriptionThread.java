@@ -14,8 +14,6 @@ import java.util.Date;
 
 import speechToText.SpeechResponse.SpeechResult.SpeechAlternative;
 
-import com.getflourish.stt.ClientHttpRequest;
-import com.getflourish.stt.STT;
 import com.google.gson.JsonSyntaxException;
 
 /**

@@ -11,9 +11,9 @@ import java.util.Date;
 import speechToText.STT;
 import speechToText.Timer;
 import speechToText.TranscriptionThread;
-
 import processing.core.PApplet;
 import ddf.minim.*;
+import ddf.minim.javasound.JSMinim;
 import javaFlacEncoder.*;
 
 /**
