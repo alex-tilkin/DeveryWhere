@@ -1,42 +1,17 @@
 package speechToText;
 
-import speechToText.STT;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
-import processing.core.PApplet;
-
-public class SttController extends PApplet{
-
+public class SttController {
 	
 	private STT stt = null;
-	private Language language = Language.ENGLISH;
-	private boolean bAutoRecognition = false;
-	private boolean bDebbuging = false;
-	private boolean bKeepHistory = false;
 	
-	public enum Language {
-		ENGLISH
-	}
-	
-	public void setup () {
+	public void setup() {
 		stt = new STT(this, false);
 		stt.setLanguage("en-us");
 		stt.enableDebug();
-	}
-	
-	public SttController() {
-		
-	}
-	
-//	public SttController(final Language _language, final boolean _bAutoRecognition, 
-//			final boolean _bDebbuging, final boolean _bKeepHistory) {
-//		language = _language;
-//		bAutoRecognition = _bAutoRecognition;
-//		bDebbuging = _bDebbuging;
-//		bKeepHistory = _bKeepHistory;
-//	}
-	
-	public void draw() {
-		background(0);
 	}
 	
 	public void transcribe (String utterance, float confidence) {
@@ -49,5 +24,13 @@ public class SttController extends PApplet{
 	
 	public void keyReleased () {
 		stt.end();
+	}
+	
+	public String sketchPath(String fileName) {
+		return fileName;
+	}
+	
+	public InputStream createInput(String fileName) throws FileNotFoundException {
+		return new FileInputStream(fileName);
 	}
 }

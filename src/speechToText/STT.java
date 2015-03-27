@@ -50,7 +50,7 @@ public class STT  {
 	String lastStatus = "";
 	boolean log = false;
 	private Minim minim;
-	PApplet pApplet;
+	Object calee;
 	
 	String path = "";
 	
@@ -75,16 +75,22 @@ public class STT  {
 	float volume;
 	ArrayList<Float> volumes;
 	
-	public STT (PApplet _pApplet, boolean history) {
-		pApplet = _pApplet;
+	public STT (Object _calee, boolean history) {
+		calee = _calee;
 		log = history;  
 		threads = new ArrayList<TranscriptionThread>();
-		minim = new Minim(pApplet);
+		minim = new Minim(calee);
 		encoder = new FLAC_FileEncoder();		
-		// get a LineIn from Minim, default bit depth is 16
-		in = minim.getLineIn(Minim.MONO);
+		in = minim.getLineIn(Minim.MONO); // get a LineIn from Minim, default bit depth is 16
+		dataPath = System.getProperty("user.dir") + "/";
+		recordsPath = getDateTime() + "/";
+		if (log) {
+			path = dataPath + recordsPath;
+		} else {
+			path = dataPath;
+		}
 		recorder = minim.createRecorder(in, path + fileName + fileCount + ".wav", true);
-        disableAutoRecord();		
+        disableAutoRecord();
         listen();	
 	}
 
@@ -173,7 +179,7 @@ public class STT  {
 	private void dispatchTranscriptionEvent(String utterance, float confidence, int s) {
 	    if (transcriptionEvent2 != null && !status.equals(lastStatus)) {
 			try {
-				transcriptionEvent2.invoke(pApplet, new Object[] {utterance, confidence, s});
+				transcriptionEvent2.invoke(calee, new Object[] {utterance, confidence, s});
 			} catch (IllegalArgumentException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -198,7 +204,7 @@ public class STT  {
 			if (transcriptionThread.isAvailable()) {
 				if (transcriptionEvent != null) {
 					try {
-						transcriptionEvent.invoke(pApplet, new Object[] { transcriptionThread.getUtterance(), transcriptionThread.getConfidence()});
+						transcriptionEvent.invoke(calee, new Object[] { transcriptionThread.getUtterance(), transcriptionThread.getConfidence()});
 					} 
 					catch (IllegalArgumentException e) {
 						e.printStackTrace();
@@ -327,15 +333,7 @@ public class STT  {
 	}
 	
 	private void initFileSystem ()
-	{
-		dataPath = pApplet.dataPath("") + "/";
-		recordsPath = getDateTime() + "/";
-		if (log) {
-			path = dataPath + recordsPath;
-		} else {
-			path = dataPath;
-		}
-				
+	{				
 		try {
 			// create datafolder if it does not exist yet
 			File datadir = new File(dataPath + "/");
@@ -352,8 +350,8 @@ public class STT  {
 		timer = new Timer(interval);
 		
 		// calls draw every frame
-		this.pApplet.registerDraw(this);
-		this.pApplet.registerDispose(this);
+		//this.pApplet.registerDraw(this);
+		//this.pApplet.registerDispose(this);
 	}
 	
 	private void listen() {
@@ -366,7 +364,7 @@ public class STT  {
 		
 		// setting up reflection method that is called in PApplet
 		try {
-			transcriptionEvent = pApplet.getClass().getMethod("transcribe", String.class, float.class);
+			transcriptionEvent = calee.getClass().getMethod("transcribe", String.class, float.class);
 		} 
 		catch (SecurityException e) {
 		} 
@@ -377,7 +375,7 @@ public class STT  {
 		
 		// setting up reflection method that is called in PApplet
 		try {
-			transcriptionEvent2 = pApplet.getClass().getMethod("transcribe", String.class, float.class, int.class);
+			transcriptionEvent2 = calee.getClass().getMethod("transcribe", String.class, float.class, int.class);
 		} 
 		catch (SecurityException e) {
 		} 
@@ -453,7 +451,6 @@ public class STT  {
 	{
 		recorder.endRecord();
 		recorder.save();
-		// recorder = null;
 		recorder = minim.createRecorder(in, path + fileName + fileCount + ".wav", true);
 		recorder.beginRecord();
 		timer.start();
