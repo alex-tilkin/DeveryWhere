@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.reflect.InvocationTargetException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -31,10 +32,12 @@ public class TranscriptionThread extends Thread {
 	private String utterance;
 	private String record;
 	private String lang;
-
-	public TranscriptionThread(String lang) {
+	private Object _calee;
+	
+	public TranscriptionThread(String lang, Object calee) {
 		this.lang = lang;
 		running = false;
+		_calee = calee;
 		this.setName("TranscriptionThread");
 	}
 
@@ -48,6 +51,24 @@ public class TranscriptionThread extends Thread {
 			if (running) {
 				transcribe(this.record);
 				running = false;
+				try {
+					_calee.getClass().getMethod("update").invoke(_calee);
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InvocationTargetException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (NoSuchMethodException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (SecurityException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			} else {
 				try {
 					sleep(500);
@@ -83,7 +104,12 @@ public class TranscriptionThread extends Thread {
 			speechResponses = responseParser.getSpeechResponses();
 			speechAlternative = speechResponses.getBestResponse();
 			if (speechAlternative != null) {
-				this.confidence = speechAlternative.getConfidence();
+				if(speechAlternative.getConfidence() == 0 && response.contains("confidence") == false) {
+					this.confidence = 1;
+				}
+				else {
+					this.confidence = speechAlternative.getConfidence();
+				}
 				this.utterance = speechAlternative.getTranscript();
 				this.available = true;
 				this.status = 0;

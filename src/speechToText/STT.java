@@ -18,32 +18,33 @@ import javaFlacEncoder.*;
 
 /**
  * Converts speech to text using the x-webkit-speech technology found in Chrome.
+ * 
  * @author Florian Schulz
  * 
  */
-public class STT  {
-	
+public class STT {
+
 	public final static int RECORDING = 0;
 	public final static int SUCCESS = 1;
 	public final static int ERROR = 2;
 	public final static int TRANSCRIBING = 3;
-	
+
 	private boolean active = false;
 	boolean analyzing;
 	private boolean auto = false;
-	
+
 	private boolean autoThreshold = true;
 	// path of recorded files
 	String dataPath = "";
 	private boolean debug = false;
 	FLAC_FileEncoder encoder;
-	
+
 	int fileCount = 0;
-	
+
 	String fileName = "";
 	boolean fired;
 	AudioInput in;
-	
+
 	// timer interval
 	int interval = 500;
 	private String language = "en";
@@ -51,11 +52,11 @@ public class STT  {
 	boolean log = false;
 	private Minim minim;
 	Object calee;
-	
+
 	String path = "";
-	
+
 	AudioRecorder recorder;
-	
+
 	boolean recording = false;
 	String recordsPath = "";
 	String result = "";
@@ -63,25 +64,26 @@ public class STT  {
 	private ArrayList<TranscriptionThread> threads;
 	// volume threshold can be adjusted on runtime
 	float threshold = 5f;
-	
+
 	Timer timer;
 
 	Timer timer2;
-	
+
 	Method transcriptionEvent;
-	
+
 	Method transcriptionEvent2;
 	private TranscriptionThread transcriptionThread;
 	float volume;
 	ArrayList<Float> volumes;
+	private Timer t_printStatus;
 	
-	public STT (Object _calee, boolean history) {
+	public STT(Object _calee) {
 		calee = _calee;
-		log = history;  
 		threads = new ArrayList<TranscriptionThread>();
 		minim = new Minim(calee);
-		encoder = new FLAC_FileEncoder();		
-		in = minim.getLineIn(Minim.MONO); // get a LineIn from Minim, default bit depth is 16
+		encoder = new FLAC_FileEncoder();
+		in = minim.getLineIn(Minim.MONO); // get a LineIn from Minim, default
+											// bit depth is 16
 		dataPath = System.getProperty("user.dir") + "/";
 		recordsPath = getDateTime() + "/";
 		if (log) {
@@ -89,28 +91,29 @@ public class STT  {
 		} else {
 			path = dataPath;
 		}
-		recorder = minim.createRecorder(in, path + fileName + fileCount + ".wav", true);
-        disableAutoRecord();
-        listen();	
+		recorder = minim.createRecorder(in, path + fileName + fileCount
+				+ ".wav", true);
+		disableAutoRecord();
+		listen();
 	}
 
 	public AudioInput getLineIn() {
 		return in;
 	}
-	
+
 	TranscriptionThread addTranscriptionThread() {
-	    transcriptionThread = new TranscriptionThread(language);
+		transcriptionThread = new TranscriptionThread(language, this);
 		transcriptionThread.debug = debug;
 		transcriptionThread.start();
-        threads.add(transcriptionThread);
+		threads.add(transcriptionThread);
 		return transcriptionThread;
 	}
-	
-	private void killTranscriptionThread (int i) {
+
+	private void killTranscriptionThread(int i) {
 		threads.get(i).interrupt();
 		threads.remove(i);
 	}
-	
+
 	private void analyzeEnv() {
 		if (!analyzing) {
 			timer2 = new Timer(2000);
@@ -118,45 +121,47 @@ public class STT  {
 			analyzing = true;
 			volumes = new ArrayList<Float>();
 		}
-    	if (timer2 != null) {
-    		if (!timer2.isFinished()) {
-    			float volume = in.mix.level() * 1000;
-    			volumes.add(volume);
-    		} 
-    		else {
-    			float avg = 0.0f;
-    			float max = 0.0f;
-    			for (int i = 0; i < volumes.size(); i++) {
-    				avg += volumes.get(i);
-    				if (volumes.get(i) > max) {
-    					max = volumes.get(i);
-    				}
-    			}
-    			avg /= volumes.size();
-    			threshold = (float) Math.ceil(max);
-    			System.out.println(getTime() + " Volume threshold automatically set to " + threshold);
-    			analyzing = false;
-    		}	
-    	}	
+		if (timer2 != null) {
+			if (!timer2.isFinished()) {
+				float volume = in.mix.level() * 1000;
+				volumes.add(volume);
+			} else {
+				float avg = 0.0f;
+				float max = 0.0f;
+				for (int i = 0; i < volumes.size(); i++) {
+					avg += volumes.get(i);
+					if (volumes.get(i) > max) {
+						max = volumes.get(i);
+					}
+				}
+				avg /= volumes.size();
+				threshold = (float) Math.ceil(max);
+				System.out
+						.println(getTime()
+								+ " Volume threshold automatically set to "
+								+ threshold);
+				analyzing = false;
+			}
+		}
 	}
-	
+
 	/**
 	 * Starts a record
 	 */
-	public void begin () {
+	public void begin() {
 		if (!active) {
 			onBegin();
 			active = true;
 			auto = false;
 		}
 	}
-	
-	public void disableAutoRecord () {
+
+	public void disableAutoRecord() {
 		auto = false;
 		disableAutoThreshold();
 		status = "STT info: Manual mode enabled. Use begin() / end() to manage recording.";
 	}
-	
+
 	/*
 	 * Disables the analysis of the environmental volume after initialization.
 	 */
@@ -164,22 +169,23 @@ public class STT  {
 		this.autoThreshold = false;
 		analyzing = false;
 	}
-	
+
 	public void disableDebug() {
 		this.debug = false;
 	}
-	
+
 	/**
 	 * Records will be deleted
 	 */
 	public void disableHistory() {
 		this.log = false;
 	}
-	
-	private void dispatchTranscriptionEvent(String utterance, float confidence, int s) {
-	    if (transcriptionEvent2 != null && !status.equals(lastStatus)) {
+
+	private void dispatchTranscriptionEvent(String utterance, float confidence,
+			int s) {
+		if (transcriptionEvent2 != null && !status.equals(lastStatus)) {
 			try {
-				transcriptionEvent2.invoke(calee, new Object[] {utterance, confidence, s});
+				transcriptionEvent2.invoke(calee, new Object[] { utterance, confidence, s });
 			} catch (IllegalArgumentException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -191,20 +197,22 @@ public class STT  {
 			}
 		}
 	}
-	
+
 	public void dispose() {
 	}
-	
-	public void draw() {	
-		if (auto) handleAuto();
+
+	public void update() {
+		if (auto) {
+			handleAuto();
+		}
 		// handles active threads and callbacks
 		for (int i = 0; i < threads.size(); i++) {
-			transcriptionThread = threads.get(i); 
+			transcriptionThread = threads.get(i);
 			transcriptionThread.debug = debug;
 			if (transcriptionThread.isAvailable()) {
 				if (transcriptionEvent != null) {
 					try {
-						transcriptionEvent.invoke(calee, new Object[] { transcriptionThread.getUtterance(), transcriptionThread.getConfidence()});
+						transcriptionEvent.invoke(calee, new Object[] {transcriptionThread.getUtterance(), transcriptionThread.getConfidence()});
 					} 
 					catch (IllegalArgumentException e) {
 						e.printStackTrace();
@@ -213,49 +221,59 @@ public class STT  {
 						e.printStackTrace();
 					} 
 					catch (InvocationTargetException e) {
-
+						e.printStackTrace();
 					}
-				} else if (transcriptionEvent2 != null) {
-                    dispatchTranscriptionEvent(transcriptionThread.getUtterance(), transcriptionThread.getConfidence(), transcriptionThread.getStatus());
+				} 
+				else if (transcriptionEvent2 != null) {
+					dispatchTranscriptionEvent(transcriptionThread.getUtterance(), transcriptionThread.getConfidence(), transcriptionThread.getStatus());
 				}
 				killTranscriptionThread(i);
 			}
-			if (debug && !status.equals(lastStatus)) {
-				System.out.println(getTime() + " " + status);
-				lastStatus = status;
-			}
+		}
+	}
+
+	private void printStatus() {
+		if (debug && !status.equals(lastStatus)) {
+			System.out.println(getTime() + " " + status);
+			lastStatus = status;
 		}
 	}
 	
 	/**
-	 * Enables the automatic recording if the set voulme threshold has been reached  
- 	*/
-	public void enableAutoRecord () {
+	 * Enables the automatic recording if the set voulme threshold has been
+	 * reached
+	 */
+	public void enableAutoRecord() {
 		auto = true;
 		enableAutoThreshold();
 		status = "STT info: Automatic mode enabled. Anything louder than threshold will be recorded.";
 	}
-	
+
 	/**
-	 * Enables the automatic recording if the given voulme threshold has been reached
-	 * @param threshold the threshold that can be checked with getVolume() 
- 	*/
-	public void enableAutoRecord (float threshold) {
+	 * Enables the automatic recording if the given voulme threshold has been
+	 * reached
+	 * 
+	 * @param threshold
+	 *            the threshold that can be checked with getVolume()
+	 */
+	public void enableAutoRecord(float threshold) {
 		auto = true;
 		this.autoThreshold = true;
 		this.threshold = threshold;
-		status = "STT info: Automatic mode enabled. Anything louder than " + threshold + " will be recorded.";
+		status = "STT info: Automatic mode enabled. Anything louder than "
+				+ threshold + " will be recorded.";
 	}
+
 	/**
 	 * Enables the analysis of the environmental volume after initialization.
 	 */
-	
+
 	public void enableAutoThreshold() {
 		this.autoThreshold = true;
 		analyzing = false;
 		analyzeEnv();
 	}
-	
+
 	/**
 	 * Enables logging of events like recording, transcribing, success, error.
 	 */
@@ -265,80 +283,82 @@ public class STT  {
 			threads.get(i).debug = this.debug;
 		}
 	}
-	
+
 	/**
 	 * Records will be kept in the data folder
 	 */
 	public void enableHistory() {
 		this.log = true;
 	}
-	
+
 	/**
 	 * Ends a record
 	 */
-	public void end () {
+	public void end() {
 		if (active) {
 			onSpeechFinish();
 			active = false;
 			auto = false;
 		}
 	}
-	
+
 	private String getDateTime() {
-	        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-	        Date date = new Date();
-	        return dateFormat.format(date);
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+		Date date = new Date();
+		return dateFormat.format(date);
 	}
-	
+
 	public String getLanguage() {
 		return language;
 	}
-	
+
 	/**
-	 * Returns the Minim instance for access in programs that need to use Minim beside STT
+	 * Returns the Minim instance for access in programs that need to use Minim
+	 * beside STT
 	 */
 	public Minim getMinimInstance() {
 		return minim;
 	}
-	
+
 	public float getThreshold() {
 		return threshold;
 	}
-	
+
 	private String getTime() {
-        DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-        Date date = new Date();
-        return dateFormat.format(date);
+		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+		Date date = new Date();
+		return dateFormat.format(date);
 	}
-	
+
 	public float getVolume() {
-        updateVolume();
+		updateVolume();
 		return volume;
 	}
-	
-	private void handleAuto () {
-	    if (analyzing) analyzeEnv();
-	    updateVolume();	
+
+	private void handleAuto() {
+		if (analyzing)
+			analyzeEnv();
+		updateVolume();
 		if (volume > threshold) {
-            // start recording when someone says something louder than threshold
+			// start recording when someone says something louder than threshold
 			onSpeech();
 		} else {
-		    // the magic begins. save it. transcribe it.
-    		if (timer.isFinished() && volume < threshold && recorder.isRecording() && recording) {
-    			onSpeechFinish();
-    		} else if (timer.isFinished() && volume < threshold) {
-    			startListening();
-    		}
+			// the magic begins. save it. transcribe it.
+			if (timer.isFinished() && volume < threshold
+					&& recorder.isRecording() && recording) {
+				onSpeechFinish();
+			} else if (timer.isFinished() && volume < threshold) {
+				startListening();
+			}
 		}
 	}
-	
-	private void initFileSystem ()
-	{				
+
+	private void initFileSystem() {
 		try {
 			// create datafolder if it does not exist yet
 			File datadir = new File(dataPath + "/");
 			datadir.mkdir();
-			
+
 			if (log) {
 				File recordsdir = new File(path);
 				recordsdir.mkdir();
@@ -348,150 +368,147 @@ public class STT  {
 			System.err.println("Could not read files in directory: " + path);
 		}
 		timer = new Timer(interval);
-		
+
 		// calls draw every frame
-		//this.pApplet.registerDraw(this);
-		//this.pApplet.registerDispose(this);
+		// this.pApplet.registerDraw(this);
+		// this.pApplet.registerDispose(this);
 	}
-	
+
 	private void listen() {
-        addTranscriptionThread();
+		addTranscriptionThread();
 		initFileSystem();
-		
+
 		// listening repeats until something is heard
 		timer.start();
-		
-		
+
 		// setting up reflection method that is called in PApplet
 		try {
-			transcriptionEvent = calee.getClass().getMethod("transcribe", String.class, float.class);
-		} 
-		catch (SecurityException e) {
-		} 
-		catch (NoSuchMethodException e) {
-		} 
-		catch (IllegalArgumentException e) {
+			transcriptionEvent = calee.getClass().getMethod("transcribe",
+					String.class, float.class);
+		} catch (SecurityException e) {
+		} catch (NoSuchMethodException e) {
+		} catch (IllegalArgumentException e) {
 		}
-		
+
 		// setting up reflection method that is called in PApplet
 		try {
 			transcriptionEvent2 = calee.getClass().getMethod("transcribe", String.class, float.class, int.class);
-		} 
-		catch (SecurityException e) {
-		} 
-		catch (NoSuchMethodException e) {
-		} 
-		catch (IllegalArgumentException e) {
+		} catch (SecurityException e) {
+		} catch (NoSuchMethodException e) {
+		} catch (IllegalArgumentException e) {
 		}
 		if (transcriptionEvent == null && transcriptionEvent2 == null) {
-			System.err.println("STT info: use transcribe(String word, float confidence, [int status]) in your main sketch to receive transcription events");
+			System.err
+					.println("STT info: use transcribe(String word, float confidence, [int status]) in your main sketch to receive transcription events");
 		}
-	
+
 	}
-	
-	private void onBegin () 
-	{
+
+	private void onBegin() {
 		status = "Recording";
-        startListening();
+		startListening();
 	}
-	
-	private void onSpeech()
-	{
+
+	private void onSpeech() {
 		// resets the timer each time something is heard
 		status = "Recording";
 		timer.start();
 		recording = true;
-        dispatchTranscriptionEvent(transcriptionThread.getUtterance(), transcriptionThread.getConfidence(), STT.RECORDING);
+		dispatchTranscriptionEvent(transcriptionThread.getUtterance(),
+				transcriptionThread.getConfidence(), STT.RECORDING);
 	}
-	
-	public void onSpeechFinish()
-	{
+
+	public void onSpeechFinish() {
 		status = "Transcribing";
 		fired = false;
 		recorder.endRecord();
 		recorder.save();
 		recording = false;
-		
-        dispatchTranscriptionEvent("", 0, STT.TRANSCRIBING);
-		
+
+		dispatchTranscriptionEvent("", 0, STT.TRANSCRIBING);
+
 		// Encode the wav to flac
 		String flac = path + fileName + fileCount + ".flac";
 		encoder.encode(new File(path + fileName + fileCount + ".wav"), new File(flac));
 		boolean exists = (new File(flac)).exists();
-		while(exists == false)
-		{	
-			exists = (new File(flac)).exists();		
+		while (exists == false) {
+			exists = (new File(flac)).exists();
 		}
-	
 		if (exists) {
-			 this.transcribe(flac);
-		} else {
-		    System.err.println("Could not transcribe. File was not encoded in time.");
+			this.transcribe(flac);
+		} 
+		else {
+			System.err.println("Could not transcribe. File was not encoded in time.");
 		}
-		
 		// new file for new speech
-		if (log) fileCount++;
+		if (log) {
+			fileCount++;
+		}
 	}
 
 	/**
-	 * @param language en, de, fr, etc. If the language is not supported it will automatically fall back to English.
+	 * @param language
+	 *            en, de, fr, etc. If the language is not supported it will
+	 *            automatically fall back to English.
 	 */
 	public void setLanguage(String language) {
 		this.language = language;
 	}
-	
+
 	/**
-	 * Sets the volume threshold that is used to recognize speech and to filter background noise.
+	 * Sets the volume threshold that is used to recognize speech and to filter
+	 * background noise.
 	 */
 	public void setThreshold(float threshold) {
 		this.threshold = threshold;
 	}
-	
-	private void startListening () 
-	{
+
+	private void startListening() {
 		recorder.endRecord();
 		recorder.save();
-		recorder = minim.createRecorder(in, path + fileName + fileCount + ".wav", true);
+		recorder = minim.createRecorder(in, path + fileName + fileCount
+				+ ".wav", true);
 		recorder.beginRecord();
 		timer.start();
 	}
-	
+
 	private void stop() {
 		// always close Minim audio classes when you are done with them
 		in.close();
 		minim.stop();
-		//p.stop();
+		// p.stop();
 	}
-	
+
 	public void transcribe(String _path) {
-        addTranscriptionThread().startTranscription(_path);
+		addTranscriptionThread().startTranscription(_path);
 	}
-	
-	public void transcribeFile (String _path) {
+
+	public void transcribeFile(String _path) {
 		status = "Transcribing";
-		
+
 		_path = path + "/" + _path;
 		// Encode the wav to flac
 		String flac = _path.substring(0, _path.length() - 4) + ".flac";
 		encoder.encode(new File(_path), new File(flac));
 		boolean exists = (new File(flac)).exists();
-		while(exists == false)
-		{	
+		while (exists == false) {
 			exists = (new File(flac)).exists();
 		}
-	
+
 		if (exists) {
-			 this.transcribe(flac);
+			this.transcribe(flac);
 		} else {
-		    System.err.println("Could not transcribe. File was not encoded in time.");
+			System.err
+					.println("Could not transcribe. File was not encoded in time.");
 		}
-		
+
 		// new file for new speech
-		if (log) fileCount++;
+		if (log)
+			fileCount++;
 	}
-	
+
 	private void updateVolume() {
-	    volume = in.mix.level() * 1000;
+		volume = in.mix.level() * 1000;
 	}
-	
+
 }

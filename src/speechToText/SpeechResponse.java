@@ -36,7 +36,7 @@ public class SpeechResponse
         public class SpeechAlternative
         {
         	private String transcript;
-        	private float confidence;
+        	private float confidence = -1;
         	
 			public String getTranscript() {
 				return transcript;
