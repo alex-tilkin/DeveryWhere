@@ -122,8 +122,8 @@ public class SttController {
 	private void initSTT() {
 		stt = new STT(this);
 		stt.setLanguage("en-us");
-		setAutoRecord(true);
-		setDebugMode(true);
+		setAutoRecord(false);
+		setDebugMode(false);
 	}
 	
 	/**

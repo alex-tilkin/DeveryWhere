@@ -23,12 +23,19 @@ import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 
 public class tester {
 
 	private JFrame frame;
 	SttController sttController = null; 
 	private JTextField textField;
+	private JLabel thresholdValue;
+	private JLabel lblNewLabel;
+	private JSlider slider;
+	private JCheckBox chckbxAutoRecording;
+	private JButton btnRecord;
+	
 	/**
 	 * Launch the application.
 	 */
@@ -40,7 +47,8 @@ public class tester {
 					window.frame.setVisible(true);
 					SttController sttController = window.sttController = new SttController();
 					sttController.setup(window);
-					sttController.setConfidenceThreshold(80);
+					sttController.setConfidenceThreshold(0);
+					sttController.setDebugMode(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -58,14 +66,8 @@ public class tester {
 	public void transcriptionResult(String result) {
 		textField.setText(result);
 	}
-	JLabel thresholdValue;
-	JLabel lblNewLabel;
-	private JSlider slider;
-	private JPanel panel;
-	private JLabel lblAutoRecord;
-	private JRadioButton rdbtnNewRadioButton;
-	private JRadioButton rdbtnNewRadioButton_1;
 	
+
 	/**
 	 * Initialize the contents of the frame.
 	 */
@@ -75,22 +77,22 @@ public class tester {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
-		final JButton btnNewButton = new JButton("Record");
-		btnNewButton.addActionListener(new ActionListener() {
+		btnRecord = new JButton("Record");
+		btnRecord.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if(btnNewButton.getText().equals("Record")) {
-					btnNewButton.setText("Stop");
+				if(btnRecord.getText().equals("Record")) {
+					btnRecord.setText("Stop");
 					sttController.begin();
 				}
 				else {
-					btnNewButton.setText("Record");
+					btnRecord.setText("Record");
 					sttController.end();
 				}
 			}
 		});
 		
-		btnNewButton.setBounds(10, 42, 89, 23);
-		frame.getContentPane().add(btnNewButton);
+		btnRecord.setBounds(10, 42, 89, 23);
+		frame.getContentPane().add(btnRecord);
 		
 		textField = new JTextField();
 		textField.setEditable(false);
@@ -118,35 +120,15 @@ public class tester {
 		slider.setBounds(71, 76, 117, 23);
 		frame.getContentPane().add(slider);
 		
-		panel = new JPanel();
-		panel.setBounds(10, 110, 164, 33);
-		frame.getContentPane().add(panel);
-		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-		
-		lblAutoRecord = new JLabel("Auto Record:");
-		panel.add(lblAutoRecord);
-		
-		rdbtnNewRadioButton = new JRadioButton("On");
-		rdbtnNewRadioButton.addMouseListener(new MouseAdapter() {
+		chckbxAutoRecording = new JCheckBox("Auto Recording");
+		chckbxAutoRecording.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				rdbtnNewRadioButton_1.setSelected(false);
-				rdbtnNewRadioButton.setSelected(true);
-				sttController.setAutoRecord(false);
+					sttController.setAutoRecord(chckbxAutoRecording.isSelected());
+					btnRecord.setEnabled(!btnRecord.isEnabled());
 			}
 		});
-		panel.add(rdbtnNewRadioButton);
-		
-		rdbtnNewRadioButton_1 = new JRadioButton("Off");
-		rdbtnNewRadioButton_1.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				rdbtnNewRadioButton.setSelected(false);
-				rdbtnNewRadioButton_1.setSelected(true);
-				sttController.setAutoRecord(true);
-			}
-		});
-		rdbtnNewRadioButton_1.setSelected(true);
-		panel.add(rdbtnNewRadioButton_1);
+		chckbxAutoRecording.setBounds(10, 112, 131, 23);
+		frame.getContentPane().add(chckbxAutoRecording);
 	}
 }
