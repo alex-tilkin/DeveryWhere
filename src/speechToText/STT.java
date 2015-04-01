@@ -7,14 +7,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import javaFlacEncoder.FLAC_FileEncoder;
 
-import speechToText.STT;
-import speechToText.Timer;
-import speechToText.TranscriptionThread;
-import processing.core.PApplet;
-import ddf.minim.*;
-import ddf.minim.javasound.JSMinim;
-import javaFlacEncoder.*;
+import ddf.minim.AudioInput;
+import ddf.minim.AudioRecorder;
+import ddf.minim.Minim;
 
 /**
  * Converts speech to text using the x-webkit-speech technology found in Chrome.
@@ -62,7 +59,6 @@ public class STT {
 	String result = "";
 	String status = "";
 	private ArrayList<TranscriptionThread> threads;
-	// volume threshold can be adjusted on runtime
 	float threshold = 5f;
 
 	Timer timer;
@@ -75,7 +71,7 @@ public class STT {
 	private TranscriptionThread transcriptionThread;
 	float volume;
 	ArrayList<Float> volumes;
-	private Timer t_printStatus;
+	private StatusPrinter statusPrinter;
 	
 	public STT(Object _calee) {
 		calee = _calee;
@@ -91,9 +87,8 @@ public class STT {
 		} else {
 			path = dataPath;
 		}
-		recorder = minim.createRecorder(in, path + fileName + fileCount
-				+ ".wav", true);
-		disableAutoRecord();
+		recorder = minim.createRecorder(in, path + fileName + fileCount + ".wav", true);
+		statusPrinter = new StatusPrinter();
 		listen();
 	}
 
@@ -136,10 +131,7 @@ public class STT {
 				}
 				avg /= volumes.size();
 				threshold = (float) Math.ceil(max);
-				System.out
-						.println(getTime()
-								+ " Volume threshold automatically set to "
-								+ threshold);
+				System.out.println(getTime() + " Volume threshold automatically set to " + threshold);
 				analyzing = false;
 			}
 		}
@@ -160,6 +152,7 @@ public class STT {
 		auto = false;
 		disableAutoThreshold();
 		status = "STT info: Manual mode enabled. Use begin() / end() to manage recording.";
+		statusPrinter.setStatus(status);
 	}
 
 	/*
@@ -231,13 +224,6 @@ public class STT {
 			}
 		}
 	}
-
-	private void printStatus() {
-		if (debug && !status.equals(lastStatus)) {
-			System.out.println(getTime() + " " + status);
-			lastStatus = status;
-		}
-	}
 	
 	/**
 	 * Enables the automatic recording if the set voulme threshold has been
@@ -247,6 +233,7 @@ public class STT {
 		auto = true;
 		enableAutoThreshold();
 		status = "STT info: Automatic mode enabled. Anything louder than threshold will be recorded.";
+		statusPrinter.setStatus(status);
 	}
 
 	/**
@@ -262,12 +249,12 @@ public class STT {
 		this.threshold = threshold;
 		status = "STT info: Automatic mode enabled. Anything louder than "
 				+ threshold + " will be recorded.";
+		statusPrinter.setStatus(status);
 	}
 
 	/**
 	 * Enables the analysis of the environmental volume after initialization.
 	 */
-
 	public void enableAutoThreshold() {
 		this.autoThreshold = true;
 		analyzing = false;
@@ -355,23 +342,16 @@ public class STT {
 
 	private void initFileSystem() {
 		try {
-			// create datafolder if it does not exist yet
 			File datadir = new File(dataPath + "/");
 			datadir.mkdir();
-
 			if (log) {
 				File recordsdir = new File(path);
 				recordsdir.mkdir();
 			}
-
 		} catch (NullPointerException e) {
 			System.err.println("Could not read files in directory: " + path);
 		}
 		timer = new Timer(interval);
-
-		// calls draw every frame
-		// this.pApplet.registerDraw(this);
-		// this.pApplet.registerDispose(this);
 	}
 
 	private void listen() {
@@ -406,12 +386,14 @@ public class STT {
 
 	private void onBegin() {
 		status = "Recording";
+		statusPrinter.setStatus(status);
 		startListening();
 	}
 
 	private void onSpeech() {
 		// resets the timer each time something is heard
 		status = "Recording";
+		statusPrinter.setStatus(status);
 		timer.start();
 		recording = true;
 		dispatchTranscriptionEvent(transcriptionThread.getUtterance(),
@@ -424,7 +406,8 @@ public class STT {
 		recorder.endRecord();
 		recorder.save();
 		recording = false;
-
+		
+		statusPrinter.setStatus(status);
 		dispatchTranscriptionEvent("", 0, STT.TRANSCRIBING);
 
 		// Encode the wav to flac
@@ -460,7 +443,9 @@ public class STT {
 	 * background noise.
 	 */
 	public void setThreshold(float threshold) {
+		status = "Threshold changed from " + this.threshold + " to " + threshold;
 		this.threshold = threshold;
+		statusPrinter.setStatus(status);
 	}
 
 	private void startListening() {
@@ -476,7 +461,6 @@ public class STT {
 		// always close Minim audio classes when you are done with them
 		in.close();
 		minim.stop();
-		// p.stop();
 	}
 
 	public void transcribe(String _path) {
@@ -486,6 +470,7 @@ public class STT {
 	public void transcribeFile(String _path) {
 		status = "Transcribing";
 
+		statusPrinter.setStatus(status);
 		_path = path + "/" + _path;
 		// Encode the wav to flac
 		String flac = _path.substring(0, _path.length() - 4) + ".flac";
@@ -511,4 +496,33 @@ public class STT {
 		volume = in.mix.level() * 1000;
 	}
 
+	public class StatusPrinter {
+		private String lastStatus;
+		private String status;
+		private boolean isDebug = true;
+
+		private void printStatus() {
+			if (getDebugMode() && !getStatus().equals(lastStatus)) {
+				System.out.println(getTime() + " " + getStatus());
+				lastStatus = getStatus();
+			}
+		}
+
+		public boolean getDebugMode() {
+			return isDebug;
+		}
+
+		public void setDebugMode(boolean isDebug) {
+			this.isDebug = isDebug;
+		}
+
+		public String getStatus() {
+			return status;
+		}
+
+		public void setStatus(String status) {
+			this.status = status;
+			printStatus();
+		}
+	}
 }
