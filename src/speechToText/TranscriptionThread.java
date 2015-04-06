@@ -97,7 +97,6 @@ public class TranscriptionThread extends Thread {
 		
 		try {
 			response = performClientHttpRequestPost(path);
-			//response = "{\"result\":[]}\n{\"result\":[{\"alternative\":[{\"transcript\":\"123\",\"confidence\":0.78849554},{\"transcript\":\"one2free\"},{\"transcript\":\"12 free\"},{\"transcript\":\"1 2 3\"},{\"transcript\":\"one two three\"}],\"final\":true}],\"result_index\":0}";
 			responseParser = new ResponseParser();
 			responseParser.setJsonString(response);
 			responseParser.parse();

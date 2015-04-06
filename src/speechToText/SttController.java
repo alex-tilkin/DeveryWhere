@@ -2,9 +2,11 @@ package speechToText;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,7 +16,21 @@ public class SttController {
 	private Method transcriptionEvent = null;
 	private Object _owner = null;
 	private float _confidenceThreshold = 0; 
-	private static Logger log = Logger.getLogger("SttController");
+	private static Logger log = Logger.getLogger(SttController.class.getName());
+	private String failureToken = "****";
+	private FileHandler fileHandler = null;
+	
+	public SttController() {
+		try {
+			fileHandler = new FileHandler("SpeachToTextModule.log");
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		log.addHandler(fileHandler);
+		log.setLevel(Level.ALL);
+	}
 	
 	/**
 	 * Initializes all necessary components and default configuration.
@@ -34,11 +50,11 @@ public class SttController {
 	public void setDebugMode(boolean enable) {
 		if(enable == true) {
 			stt.enableDebug();
-			log.log(Level.FINE, "Debug mode enabled.");
+			log.config("Debug mode enabled.");
 		}
 		else {
 			stt.disableDebug();
-			log.log(Level.FINE, "Debug mode disabled.");
+			log.config("Debug mode disabled.");
 		}
 	}
 	
@@ -48,7 +64,7 @@ public class SttController {
 	 */
 	public void setConfidenceThreshold(final int confidenceThreshold) {
 		_confidenceThreshold = (float) ((float)confidenceThreshold / 100.0);
-		log.log(Level.FINE, "Confidence threshod has been set to: {0}", _confidenceThreshold);
+		log.config(String.format("Confidence threshod has been set to: %f", _confidenceThreshold));
 	}
 	
 	/**
@@ -56,7 +72,7 @@ public class SttController {
 	 */
 	public void begin () {
 		stt.begin();
-		log.log(Level.FINE, "Recording started out.");
+		log.fine("Recording started out.");
 	}
 	
 	/**
@@ -64,7 +80,7 @@ public class SttController {
 	 */
 	public void end () {
 		stt.end();
-		log.log(Level.FINE, "Recording ended.");
+		log.fine("Recording ended.");
 	}
 	
 	/**
@@ -75,9 +91,11 @@ public class SttController {
 	public void setAutoRecord(boolean enable) {
 		if(enable == true) {
 			stt.enableAutoRecord();
+			log.fine("Auto recording enabled.");
 		}
 		else {
 			stt.disableAutoRecord();
+			log.fine("Auto recording disabled.");
 		}
 	}
 	
@@ -108,22 +126,23 @@ public class SttController {
 	 * @param confidence - With what confidence the utterance had been transcribed 
 	 */
 	public void transcribe (String utterance, float confidence) {
-		String transcriptionBuffer = confidence >= _confidenceThreshold ? utterance : "****";
-		log.log(Level.FINE, "Sunscribtion to events has been accomplished.");
+		String transcriptionBuffer = confidence >= _confidenceThreshold && confidence != 0.0 
+				? utterance : getFailureToken();
+		log.fine(String.format("transcription arrived: %s. With confidence %f", utterance, confidence));
 		try {
 			transcriptionEvent.invoke(_owner, new Object[] { transcriptionBuffer });
 		} 
 		catch (IllegalAccessException e) {
 			e.printStackTrace();
-			log.log(Level.SEVERE, e.toString(), e);
+			log.severe(e.toString());
 		} 
 		catch (IllegalArgumentException e) {
 			e.printStackTrace();
-			log.log(Level.SEVERE, e.toString(), e);
+			log.severe(e.toString());
 		} 
 		catch (InvocationTargetException e) {
 			e.printStackTrace();
-			log.log(Level.SEVERE, e.toString(), e);
+			log.severe(e.toString());
 		}
 	}
 	
@@ -133,7 +152,7 @@ public class SttController {
 	private void initSTT() {
 		stt = new STT(this);
 		stt.setLanguage("en-us");
-		log.log(Level.FINE, "STT has been initialized.");
+		log.fine("STT has been initialized.");
 	}
 	
 	/**
@@ -143,7 +162,7 @@ public class SttController {
 	private void subscribeToEvents(Object owner) {
 		try {
 			transcriptionEvent = owner.getClass().getMethod("transcriptionResult", String.class);
-			log.log(Level.FINE, "Sunscribtion to events has been accomplished.");
+			log.fine("Sunscribtion to events has been accomplished.");
 		} 
 		catch (SecurityException e) {
 		} 
@@ -151,5 +170,23 @@ public class SttController {
 		} 
 		catch (IllegalArgumentException e) {
 		}
+	}
+
+	
+	/**
+	 * @return The token that is returned in case a transcription is failed.
+	 */
+	public String getFailureToken() {
+		return failureToken;
+	}
+
+	
+	/**
+	 * Sets the return token in case of transcription failure.
+	 * For example: $$$%$^ (any non-trivial combination or rare character will be a good decision)
+	 * @param failureToken
+	 */
+	public void setFailureToken(String failureToken) {
+		this.failureToken = failureToken;
 	}
 }
