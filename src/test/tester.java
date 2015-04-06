@@ -104,17 +104,23 @@ public class tester {
 		lblNewLabel.setBounds(10, 76, 89, 23);
 		frame.getContentPane().add(lblNewLabel);
 		
-		thresholdValue = new JLabel("0");
+		thresholdValue = new JLabel("0%");
 		thresholdValue.setBounds(198, 76, 32, 23);
 		frame.getContentPane().add(thresholdValue);
 		
 		slider = new JSlider();
 		slider.setValue(0);
+		slider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				sttController.setConfidenceThreshold(slider.getValue());
+				thresholdValue.setText(String.valueOf(slider.getValue()) + "%");
+			}
+		});
+
 		slider.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent arg0) {
-				sttController.setConfidenceThreshold(slider.getValue());
-				thresholdValue.setText(String.valueOf(slider.getValue()));
+
 			}
 		});
 		slider.setBounds(71, 76, 117, 23);

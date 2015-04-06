@@ -60,7 +60,8 @@ public class SttController {
 	}
 	
 	/**
-	 * Enables/ Disables Auto Record. When Auto Record is enabled the STT module begin to record when speech identified.
+	 * Enables/ Disables Auto Record. When Auto Record is enabled the STT module begin to record 
+	 * when speech identified.
 	 * @param enable - True - Enable Auto Record. False - Disable Auto Record.
 	 */
 	public void setAutoRecord(boolean enable) {
@@ -101,7 +102,6 @@ public class SttController {
 	public void transcribe (String utterance, float confidence) {
 		String transcriptionBuffer = confidence >= _confidenceThreshold ? utterance : "****";
 		
-		System.out.println(utterance + " with confidence of: " + confidence);
 		try {
 			transcriptionEvent.invoke(_owner, new Object[] { transcriptionBuffer });
 		} 

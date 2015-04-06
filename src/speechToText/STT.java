@@ -7,8 +7,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import javaFlacEncoder.FLAC_FileEncoder;
 
+import javaFlacEncoder.FLAC_FileEncoder;
 import ddf.minim.AudioInput;
 import ddf.minim.AudioRecorder;
 import ddf.minim.Minim;
@@ -28,9 +28,7 @@ public class STT {
 
 	private boolean active = false;
 	boolean analyzing;
-	private boolean auto = false;
-
-	private boolean autoThreshold = true;
+	
 	// path of recorded files
 	String dataPath = "";
 	private boolean debug = false;
@@ -43,7 +41,7 @@ public class STT {
 	AudioInput in;
 
 	// timer interval
-	int interval = 500;
+	int interval = 1500;
 	private String language = "en";
 	String lastStatus = "";
 	boolean log = false;
@@ -72,6 +70,7 @@ public class STT {
 	float volume;
 	ArrayList<Float> volumes;
 	private StatusPrinter statusPrinter;
+	private AutoRecordThread autoRecordThread;
 	
 	public STT(Object _calee) {
 		calee = _calee;
@@ -121,15 +120,14 @@ public class STT {
 				float volume = in.mix.level() * 1000;
 				volumes.add(volume);
 			} else {
-				float avg = 0.0f;
 				float max = 0.0f;
 				for (int i = 0; i < volumes.size(); i++) {
-					avg += volumes.get(i);
+					volumes.get(i);
 					if (volumes.get(i) > max) {
 						max = volumes.get(i);
 					}
 				}
-				avg /= volumes.size();
+				volumes.size();
 				threshold = (float) Math.ceil(max);
 				System.out.println(getTime() + " Volume threshold automatically set to " + threshold);
 				analyzing = false;
@@ -144,14 +142,15 @@ public class STT {
 		if (!active) {
 			onBegin();
 			active = true;
-			auto = false;
 		}
 	}
 
 	public void disableAutoRecord() {
-		auto = false;
 		disableAutoThreshold();
-		status = "STT info: Manual mode enabled. Use begin() / end() to manage recording.";
+		if(autoRecordThread != null) {
+			autoRecordThread.halt();
+		}
+		status = "STT info: Manual mode enabled.";
 		statusPrinter.setStatus(status);
 	}
 
@@ -159,8 +158,7 @@ public class STT {
 	 * Disables the analysis of the environmental volume after initialization.
 	 */
 	public void disableAutoThreshold() {
-		this.autoThreshold = false;
-		analyzing = false;
+		analyzing = false;	
 	}
 
 	public void disableDebug() {
@@ -195,9 +193,6 @@ public class STT {
 	}
 
 	public void update() {
-		if (auto) {
-			handleAuto();
-		}
 		// handles active threads and callbacks
 		for (int i = 0; i < threads.size(); i++) {
 			transcriptionThread = threads.get(i);
@@ -230,10 +225,35 @@ public class STT {
 	 * reached
 	 */
 	public void enableAutoRecord() {
-		auto = true;
 		enableAutoThreshold();
+		autoRecordThread = new AutoRecordThread();
+		autoRecordThread.start();
 		status = "STT info: Automatic mode enabled. Anything louder than threshold will be recorded.";
 		statusPrinter.setStatus(status);
+	}
+	
+	
+	public class AutoRecordThread extends Thread {
+		
+		private boolean run = false;
+		
+		public AutoRecordThread() {
+			run = true;
+			setName("AutoRecordThread");
+		}
+		
+		@Override
+		public void run() {
+			while (!Thread.currentThread().isInterrupted()) {
+				if(run) {
+					handleAuto();
+				}
+			}
+		}
+		
+		public void halt() {
+			run = false;
+		}
 	}
 
 	/**
@@ -244,11 +264,11 @@ public class STT {
 	 *            the threshold that can be checked with getVolume()
 	 */
 	public void enableAutoRecord(float threshold) {
-		auto = true;
-		this.autoThreshold = true;
 		this.threshold = threshold;
-		status = "STT info: Automatic mode enabled. Anything louder than "
-				+ threshold + " will be recorded.";
+		autoRecordThread = new AutoRecordThread();
+		autoRecordThread.start();
+		status = "STT info: Automatic mode enabled. Anything louder than " + threshold + 
+				" will be recorded.";
 		statusPrinter.setStatus(status);
 	}
 
@@ -256,7 +276,6 @@ public class STT {
 	 * Enables the analysis of the environmental volume after initialization.
 	 */
 	public void enableAutoThreshold() {
-		this.autoThreshold = true;
 		analyzing = false;
 		analyzeEnv();
 	}
@@ -285,7 +304,6 @@ public class STT {
 		if (active) {
 			onSpeechFinish();
 			active = false;
-			auto = false;
 		}
 	}
 
@@ -323,14 +341,14 @@ public class STT {
 	}
 
 	private void handleAuto() {
-		if (analyzing)
+		if (analyzing) {
 			analyzeEnv();
+		}
 		updateVolume();
 		if (volume > threshold) {
-			// start recording when someone says something louder than threshold
+			// start recording when someone says something louder than a threshold
 			onSpeech();
 		} else {
-			// the magic begins. save it. transcribe it.
 			if (timer.isFinished() && volume < threshold
 					&& recorder.isRecording() && recording) {
 				onSpeechFinish();
