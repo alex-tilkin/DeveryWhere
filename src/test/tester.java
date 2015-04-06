@@ -1,28 +1,18 @@
 package test;
 
 import java.awt.EventQueue;
-
 import javax.swing.JFrame;
-
 import speechToText.SttController;
 import javax.swing.JButton;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import javax.swing.JTextField;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JLabel;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 
 public class tester {
@@ -35,6 +25,7 @@ public class tester {
 	private JSlider slider;
 	private JCheckBox chckbxAutoRecording;
 	private JButton btnRecord;
+	private JCheckBox chckbxDebugging;
 	
 	/**
 	 * Launch the application.
@@ -48,7 +39,6 @@ public class tester {
 					SttController sttController = window.sttController = new SttController();
 					sttController.setup(window);
 					sttController.setConfidenceThreshold(0);
-					sttController.setDebugMode(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -67,13 +57,12 @@ public class tester {
 		textField.setText(result);
 	}
 	
-
 	/**
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 450, 300);
+		frame.setBounds(100, 100, 496, 300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
@@ -96,16 +85,12 @@ public class tester {
 		
 		textField = new JTextField();
 		textField.setEditable(false);
-		textField.setBounds(10, 11, 414, 20);
+		textField.setBounds(10, 11, 480, 20);
 		frame.getContentPane().add(textField);
 		textField.setColumns(10);
 		
-		lblNewLabel = new JLabel("Threshold");
-		lblNewLabel.setBounds(10, 76, 89, 23);
-		frame.getContentPane().add(lblNewLabel);
-		
 		thresholdValue = new JLabel("0%");
-		thresholdValue.setBounds(198, 76, 32, 23);
+		thresholdValue.setBounds(210, 76, 32, 23);
 		frame.getContentPane().add(thresholdValue);
 		
 		slider = new JSlider();
@@ -123,7 +108,7 @@ public class tester {
 
 			}
 		});
-		slider.setBounds(71, 76, 117, 23);
+		slider.setBounds(81, 76, 117, 23);
 		frame.getContentPane().add(slider);
 		
 		chckbxAutoRecording = new JCheckBox("Auto Recording");
@@ -136,5 +121,19 @@ public class tester {
 		});
 		chckbxAutoRecording.setBounds(10, 112, 131, 23);
 		frame.getContentPane().add(chckbxAutoRecording);
+		
+		JLabel lblThreshold = new JLabel("Threshold");
+		lblThreshold.setBounds(10, 79, 83, 16);
+		frame.getContentPane().add(lblThreshold);
+		
+		chckbxDebugging = new JCheckBox("Debugging");
+		chckbxDebugging.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				sttController.setDebugMode(chckbxDebugging.isSelected());
+			}
+		});
+		chckbxDebugging.setBounds(10, 147, 128, 23);
+		frame.getContentPane().add(chckbxDebugging);
 	}
 }

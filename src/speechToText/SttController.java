@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SttController {
 
@@ -12,6 +14,7 @@ public class SttController {
 	private Method transcriptionEvent = null;
 	private Object _owner = null;
 	private float _confidenceThreshold = 0; 
+	private static Logger log = Logger.getLogger("SttController");
 	
 	/**
 	 * Initializes all necessary components and default configuration.
@@ -31,9 +34,11 @@ public class SttController {
 	public void setDebugMode(boolean enable) {
 		if(enable == true) {
 			stt.enableDebug();
+			log.log(Level.FINE, "Debug mode enabled.");
 		}
 		else {
 			stt.disableDebug();
+			log.log(Level.FINE, "Debug mode disabled.");
 		}
 	}
 	
@@ -43,6 +48,7 @@ public class SttController {
 	 */
 	public void setConfidenceThreshold(final int confidenceThreshold) {
 		_confidenceThreshold = (float) ((float)confidenceThreshold / 100.0);
+		log.log(Level.FINE, "Confidence threshod has been set to: {0}", _confidenceThreshold);
 	}
 	
 	/**
@@ -50,6 +56,7 @@ public class SttController {
 	 */
 	public void begin () {
 		stt.begin();
+		log.log(Level.FINE, "Recording started out.");
 	}
 	
 	/**
@@ -57,6 +64,7 @@ public class SttController {
 	 */
 	public void end () {
 		stt.end();
+		log.log(Level.FINE, "Recording ended.");
 	}
 	
 	/**
@@ -101,18 +109,21 @@ public class SttController {
 	 */
 	public void transcribe (String utterance, float confidence) {
 		String transcriptionBuffer = confidence >= _confidenceThreshold ? utterance : "****";
-		
+		log.log(Level.FINE, "Sunscribtion to events has been accomplished.");
 		try {
 			transcriptionEvent.invoke(_owner, new Object[] { transcriptionBuffer });
 		} 
 		catch (IllegalAccessException e) {
 			e.printStackTrace();
+			log.log(Level.SEVERE, e.toString(), e);
 		} 
 		catch (IllegalArgumentException e) {
 			e.printStackTrace();
+			log.log(Level.SEVERE, e.toString(), e);
 		} 
 		catch (InvocationTargetException e) {
 			e.printStackTrace();
+			log.log(Level.SEVERE, e.toString(), e);
 		}
 	}
 	
@@ -122,8 +133,7 @@ public class SttController {
 	private void initSTT() {
 		stt = new STT(this);
 		stt.setLanguage("en-us");
-		setAutoRecord(false);
-		setDebugMode(false);
+		log.log(Level.FINE, "STT has been initialized.");
 	}
 	
 	/**
@@ -133,6 +143,7 @@ public class SttController {
 	private void subscribeToEvents(Object owner) {
 		try {
 			transcriptionEvent = owner.getClass().getMethod("transcriptionResult", String.class);
+			log.log(Level.FINE, "Sunscribtion to events has been accomplished.");
 		} 
 		catch (SecurityException e) {
 		} 

@@ -129,7 +129,8 @@ public class STT {
 				}
 				volumes.size();
 				threshold = (float) Math.ceil(max);
-				System.out.println(getTime() + " Volume threshold automatically set to " + threshold);
+				status = getTime() + " Volume threshold automatically set to " + threshold;
+				statusPrinter.setStatus(status);
 				analyzing = false;
 			}
 		}
@@ -163,6 +164,7 @@ public class STT {
 
 	public void disableDebug() {
 		this.debug = false;
+		statusPrinter.setDebugMode(false);
 	}
 
 	/**
@@ -232,7 +234,6 @@ public class STT {
 		statusPrinter.setStatus(status);
 	}
 	
-	
 	public class AutoRecordThread extends Thread {
 		
 		private boolean run = false;
@@ -285,6 +286,7 @@ public class STT {
 	 */
 	public void enableDebug() {
 		this.debug = true;
+		statusPrinter.setDebugMode(true);
 		for (int i = 0; i < threads.size(); i++) {
 			threads.get(i).debug = this.debug;
 		}
@@ -381,8 +383,7 @@ public class STT {
 
 		// setting up reflection method that is called in PApplet
 		try {
-			transcriptionEvent = calee.getClass().getMethod("transcribe",
-					String.class, float.class);
+			transcriptionEvent = calee.getClass().getMethod("transcribe", String.class, float.class);
 		} catch (SecurityException e) {
 		} catch (NoSuchMethodException e) {
 		} catch (IllegalArgumentException e) {
@@ -396,10 +397,9 @@ public class STT {
 		} catch (IllegalArgumentException e) {
 		}
 		if (transcriptionEvent == null && transcriptionEvent2 == null) {
-			System.err
-					.println("STT info: use transcribe(String word, float confidence, [int status]) in your main sketch to receive transcription events");
+			System.err.println("STT info: use transcribe(String word, float confidence, [int status]) "
+					+ "in your main sketch to receive transcription events");
 		}
-
 	}
 
 	private void onBegin() {
@@ -517,7 +517,7 @@ public class STT {
 	public class StatusPrinter {
 		private String lastStatus;
 		private String status;
-		private boolean isDebug = true;
+		private boolean isDebug = false;
 
 		private void printStatus() {
 			if (getDebugMode() && !getStatus().equals(lastStatus)) {
