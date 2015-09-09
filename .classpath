@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="target/generated-sources/antlr4"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="Externals/google-gson-2.2.4/gson-2.2.4-javadoc.jar"/>
 	<classpathentry kind="lib" path="Externals/google-gson-2.2.4/gson-2.2.4-sources.jar"/>
@@ -24,5 +25,7 @@
 	<classpathentry kind="lib" path="Externals/Processing/org.eclipse.osgi_3.8.1.v20120830-144521.jar"/>
 	<classpathentry kind="lib" path="Externals/Processing/pde.jar"/>
 	<classpathentry kind="lib" path="Externals/Processing/stt.jar"/>
+	<classpathentry kind="lib" path="/Users/Alex/Development/Java/Jars/antlr-4.5.1-complete.jar"/>
+	<classpathentry kind="src" path="/DictationParser"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

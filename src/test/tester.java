@@ -3,6 +3,7 @@ package test;
 import java.awt.EventQueue;
 import javax.swing.JFrame;
 import speechToText.SttController;
+
 import javax.swing.JButton;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
@@ -10,6 +11,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeListener;
+
+import com.dictationParser.DictationParser;
+
 import javax.swing.event.ChangeEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -55,6 +59,7 @@ public class tester {
 
 	public void transcriptionResult(String result) {
 		textField.setText(result);
+		new DictationParser(result);
 	}
 	
 	/**
