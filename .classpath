@@ -25,7 +25,7 @@
 	<classpathentry kind="lib" path="Externals/Processing/org.eclipse.osgi_3.8.1.v20120830-144521.jar"/>
 	<classpathentry kind="lib" path="Externals/Processing/pde.jar"/>
 	<classpathentry kind="lib" path="Externals/Processing/stt.jar"/>
-	<classpathentry kind="lib" path="/Users/Alex/Development/Java/Jars/antlr-4.5.1-complete.jar"/>
 	<classpathentry kind="src" path="/DictationParser"/>
+	<classpathentry kind="lib" path="/Users/Alex/Eclipse/workspace/DeveryWhere/Externals/Antlr/antlr-4.5.1-complete.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
