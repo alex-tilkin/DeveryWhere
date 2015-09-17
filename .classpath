@@ -26,6 +26,6 @@
 	<classpathentry kind="lib" path="Externals/Processing/pde.jar"/>
 	<classpathentry kind="lib" path="Externals/Processing/stt.jar"/>
 	<classpathentry kind="src" path="/DictationParser"/>
-	<classpathentry kind="lib" path="/Users/Alex/Eclipse/workspace/DeveryWhere/Externals/Antlr/antlr-4.5.1-complete.jar"/>
+	<classpathentry kind="lib" path="Externals/Antlr/antlr-4.5.1-complete.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
