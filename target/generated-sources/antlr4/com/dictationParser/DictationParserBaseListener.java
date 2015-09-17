@@ -16,9 +16,7 @@ public class DictationParserBaseListener implements DictationParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterCommand(DictationParserParser.CommandContext ctx) { 
-		System.out.println("In enterCommand");
-	}
+	@Override public void enterCommand(DictationParserParser.CommandContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
